@@ -13,8 +13,11 @@ spec:
     selfSignedCert: false
     customCheProperties:
       CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '3'
-      CHE_WORKSPACE_DEFAULT__CPU__LIMIT__CORES: '6'
-      CHE_WORKSPACE_DEFAULT__MEMORY__LIMIT__MB: '8192'
+      #CHE_WORKSPACE_DEFAULT__CPU__LIMIT__CORES: '6'
+      #CHE_WORKSPACE_DEFAULT__MEMORY__LIMIT__MB: '8192'
+      CHE_LIMITS_WORKSPACE_IDLE_TIMEOUT: '-1'
+      CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'IfNotPresent'
+      CHE_WORKSPACE_PLUGIN__BROKER_PULL__POLICY: 'IfNotPresent'
   database:
     externalDb: false
     chePostgresHostName: ''
