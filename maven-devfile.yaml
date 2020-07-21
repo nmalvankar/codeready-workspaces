@@ -1,0 +1,92 @@
+metadata:
+  name: vertx-health-checks-cgjnx
+projects:
+  - name: vertx-health-checks-example-redhat
+    source:
+      location: >-
+        https://devfile-registry-crw22-airgap.apps.toronto-5cef.open.redhat.com/resources/vertx-health-checks-vertx-health-checks-example-redhat-master.zip
+      type: zip
+components:
+  - id: redhat/java11/latest
+    type: chePlugin
+  - id: redhat/dependency-analytics/latest
+    type: chePlugin
+  - mountSources: true
+    endpoints:
+      - name: health-checks-endpoint
+        port: 8080
+    memoryLimit: 512Mi
+    type: dockerimage
+    volumes:
+      - name: m2
+        containerPath: /home/jboss/.m2
+    alias: maven
+    image: 'quay.io/nmalvankar/plugin-java11-rhel8:2.2'
+    env:
+      - value: >-
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom
+          -Duser.home=/home/jboss
+        name: JAVA_OPTS
+      - value: >-
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom
+          -Duser.home=/home/jboss
+          -Djavax.net.ssl.trustStore=/projects/truststore/truststore.jks
+        name: MAVEN_OPTS
+      - value: /projects/git-config/.gitconfig
+        name: GIT_CONFIG
+apiVersion: 1.0.0
+commands:
+  - name: Build
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/vertx-health-checks-example-redhat'
+        type: exec
+        command: mvn clean install
+        component: maven
+  - name: Build and run
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/vertx-health-checks-example-redhat'
+        type: exec
+        command: 'mvn clean install && mvn -Dvertx.disableDnsResolver=true vertx:run'
+        component: maven
+  - name: Run in debug mode
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/vertx-health-checks-example-redhat'
+        type: exec
+        command: 'mvn -DskipTests vertx:debug'
+        component: maven
+  - name: Run tests
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/vertx-health-checks-example-redhat'
+        type: exec
+        command: mvn verify
+        component: maven
+  - name: Deploy to OpenShift
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/vertx-health-checks-example-redhat'
+        type: exec
+        command: >-
+          mvn fabric8:deploy -Popenshift -DskipTests
+          -Dvertx.disableDnsResolver=true
+        component: maven
+  - name: Attach remote debugger
+    actions:
+      - referenceContent: |
+          {
+          "version": "0.2.0",
+          "configurations": [
+          {
+              "type": "java",
+              "request": "attach",
+              "name": "Debug (Attach)",
+              "hostName": "localhost",
+              "port": 5005
+          }
+          ]
+          }
+        type: vscode-launch
