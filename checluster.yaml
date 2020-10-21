@@ -36,3 +36,5 @@ spec:
     pvcStrategy: per-workspace
     pvcClaimSize: 1Gi
     preCreateSubPaths: true
+  metrics:
+    enable: true
